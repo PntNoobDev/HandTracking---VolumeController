@@ -1,37 +1,49 @@
 import cv2
 import os
-import numpy as np
 
-# Tạo thư mục để lưu dữ liệu ký hiệu tay
-if not os.path.exists("gesture_data"):
-    os.makedirs("gesture_data")
+# Hàm để tạo thư mục nếu nó không tồn tại
+def create_directory(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
-def capture_gesture(label):
+# Hàm để chụp hình ảnh
+def capture_images(gesture_name):
+    # Khởi tạo camera
     cap = cv2.VideoCapture(0)
-    print("Press 'S' to save the gesture and 'Q' to quit")
 
+    create_directory('dataset')
+    gesture_folder = os.path.join('dataset', gesture_name)
+    create_directory(gesture_folder)
+
+    print(f"Bắt đầu chụp hình cho ký hiệu '{gesture_name}'. Nhấn 's' để lưu hình ảnh, 'q' để dừng.")
+
+    count = 0
     while True:
         ret, frame = cap.read()
         if not ret:
+            print("Không thể lấy hình ảnh từ camera.")
             break
 
-        # Hiển thị khung camera
-        cv2.imshow('Gesture Capture', frame)
-        
-        key = cv2.waitKey(1)
-        
-        if key == ord('s'):
-            # Lưu hình ảnh của ký hiệu tay
-            file_name = f'gesture_data/{label}_{len(os.listdir("gesture_data"))}.jpg'
-            cv2.imwrite(file_name, frame)
-            print(f"Gesture saved as {file_name}")
-        
-        if key == ord('q'):
+        # Hiển thị khung hình
+        cv2.imshow('Camera', frame)
+
+        # Nhấn 's' để lưu hình ảnh
+        if cv2.waitKey(1) & 0xFF == ord('s'):
+            img_name = f"{gesture_name}_{count + 1}.jpg"
+            cv2.imwrite(os.path.join(gesture_folder, img_name), frame)
+            print(f"Lưu hình ảnh: {img_name}")
+            count += 1
+
+        # Nhấn 'q' để dừng
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
+    # Giải phóng camera
     cap.release()
     cv2.destroyAllWindows()
+    print("Hoàn tất việc chụp hình.")
 
-# Cho người dùng nhập ký tự mà họ muốn gán cho ký hiệu tay
-label = input("Nhập ký tự bạn muốn gán cho ký hiệu tay: ")
-capture_gesture(label)
+# Ví dụ sử dụng
+if __name__ == "__main__":
+    gesture_name = input("Nhập tên ký hiệu bạn muốn chụp: ")
+    capture_images(gesture_name)
